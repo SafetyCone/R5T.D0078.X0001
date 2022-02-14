@@ -45,6 +45,19 @@ namespace System
                 Instances.SolutionFolderName.Dependencies());
         }
 
+        public static async Task AddDependencyProjectReferences(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
+            IEnumerable<string> solutionFilePathsToModify,
+            IEnumerable<string> dependencyProjectReferenceFilePathsToAdd)
+        {
+            foreach (var solutionFilePathToModify in solutionFilePathsToModify)
+            {
+                await visualStudioSolutionFileOperator.AddProjectReferences(
+                    solutionFilePathToModify,
+                    dependencyProjectReferenceFilePathsToAdd,
+                    Instances.SolutionFolderName.Dependencies());
+            }
+        }
+
         public static async Task AddDependencyProjectReferencesOfProjectReferences(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
             string solutionFilePath,
             params IProjectFileSpecification[] projectFileSpecifications)
