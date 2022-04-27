@@ -151,16 +151,41 @@ namespace System
             return output;
         }
 
-        public static async Task<bool> HasProjectReference(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
+        public static async Task<Dictionary<string, bool>> HasProjectReferences(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
             string solutionFilePath,
-            string projectReferenceFilePath,
+            IEnumerable<string> projectReferenceFilePaths,
             IStringlyTypedPathOperator stringlyTypedPathOperator)
         {
             var projectReferencePaths = await visualStudioSolutionFileOperator.ListProjectReferencePaths(
                 solutionFilePath,
                 stringlyTypedPathOperator);
 
-            var output = projectReferencePaths.Contains(projectReferenceFilePath);
+            var projectReferencePathsHash = new HashSet<string>(projectReferencePaths);
+
+            var output = projectReferenceFilePaths
+                .Select(xProjectReferenceFilePath => new
+                {
+                    ProjectReferenceFilePath = xProjectReferenceFilePath,
+                    SolutionHasProjectReferenceFilePath = projectReferencePathsHash.Contains(xProjectReferenceFilePath)
+                })
+                .ToDictionary(
+                    x => x.ProjectReferenceFilePath,
+                    x => x.SolutionHasProjectReferenceFilePath);
+
+            return output;
+        }
+
+        public static async Task<bool> HasProjectReference(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
+            string solutionFilePath,
+            string projectReferenceFilePath,
+            IStringlyTypedPathOperator stringlyTypedPathOperator)
+        {
+            var hasProjectReferences = await visualStudioSolutionFileOperator.HasProjectReferences(
+                solutionFilePath,
+                EnumerableHelper.From(projectReferenceFilePath),
+                stringlyTypedPathOperator);
+
+            var output = hasProjectReferences.Single().Value;
             return output;
         }
 
