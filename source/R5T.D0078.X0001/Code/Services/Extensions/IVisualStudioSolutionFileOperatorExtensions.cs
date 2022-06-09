@@ -138,17 +138,28 @@ namespace System
 
         public static async Task<string[]> ListProjectReferencePaths(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
             string solutionFilePath,
-            IStringlyTypedPathOperator stringlyTypedPathOperator)
+            Func<string, string> getDirectoryPathForFilePath,
+            Func<string, string, string> combineDirectoryPathAndRelativeFilePath)
         {
-            var solutionDirectoryPath = stringlyTypedPathOperator.GetDirectoryPathForFilePath(solutionFilePath);
+            var solutionDirectoryPath = getDirectoryPathForFilePath(solutionFilePath);
 
             var projectReferenceRelativePaths = await visualStudioSolutionFileOperator.ListProjectReferenceRelativePaths(solutionFilePath);
 
             var output = projectReferenceRelativePaths
-                .Select(xRelativeFilePath => stringlyTypedPathOperator.Combine(solutionDirectoryPath, xRelativeFilePath))
+                .Select(xRelativeFilePath => combineDirectoryPathAndRelativeFilePath(solutionDirectoryPath, xRelativeFilePath))
                 .ToArray();
 
             return output;
+        }
+
+        public static Task<string[]> ListProjectReferencePaths(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
+            string solutionFilePath,
+            IStringlyTypedPathOperator stringlyTypedPathOperator)
+        {
+            return visualStudioSolutionFileOperator.ListProjectReferencePaths(
+                solutionFilePath,
+                stringlyTypedPathOperator.GetDirectoryPathForFilePath,
+                stringlyTypedPathOperator.Combine);
         }
 
         public static async Task<Dictionary<string, bool>> HasProjectReferences(this IVisualStudioSolutionFileOperator visualStudioSolutionFileOperator,
